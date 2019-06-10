@@ -1,4 +1,4 @@
-'''https://github.com/Celmas/Runge-Kutta/blob/master/Runge-Kutta
+'''
 In order to numerically solve a ordinary differential equation, we
 will simply use the classical 4th order Runge-Kutta method, based
 on the Wikipedia article on the subject:
@@ -14,7 +14,7 @@ striving for maximal efficiency or generality.
 from functools import reduce
 from operator import mul
 
-def runge_kutta(f, t0, y0, h):
+def runge_kutta(q, f, t0, q0, y0, h):
     '''
     Classical Runge-Kutta method for dy/dt = f(t, y), y(t0) = y0,
     with step h, and the specified tolerance and max_steps.
@@ -39,6 +39,7 @@ def runge_kutta(f, t0, y0, h):
     '''
     # y and t represent y[n] and t[n] respectively at each stage
     y = y0
+    q = q0
     t = t0
 
     # Whilst it would be more elegant to write this recursively,
@@ -51,16 +52,21 @@ def runge_kutta(f, t0, y0, h):
     # of the function indefinitely.
     while True:
         # Generate the next values of the solution y
-        yield t, y
+        yield t, q, y
 
         # Values for weighted average (compare with Wikipedia)
-        k1 = f(t, y)
-        k2 = f(t + h/2, y + (h/2)*k1)
-        k3 = f(t + h/2, y + (h/2)*k2)
-        k4 = f(t + h, y + h*k3)
+        kq1 = q(t, y)
+        kq2 = q(t + h/2, y + (h/2)*kq1)
+        kq3 = q(t + h/2, y + (h/2)*kq2)
+        kq4 = q(t + h, y + h*kq3)
+        ky1 = f(t, q)
+        ky2 = f(t + h/2, q + (h/2)*ky1)
+        ky3 = f(t + h/2, q + (h/2)*ky2)
+        ky4 = f(t + h, q + h*ky3)
 
         # Calculate the new value of y and t as per the Runge-Kutta method
-        y = y + (h/6)*(k1 + 2*k2 + 2*k3 + k4)
+        q = q + (h/6)*(kq1 + 2*kq2 + 2*kq3 + kq4)
+        y = y + (h/6)*(ky1 + 2*ky2 + 2*ky3 + ky4)
         t = t + h
 
 if __name__ == '__main__':
@@ -71,12 +77,15 @@ if __name__ == '__main__':
     from itertools import islice
     from math import exp
     # Evaluate the solution at some points
-    tys = list(islice(runge_kutta(
-        lambda t, y: t + y, # f(t, y)
+    ty1s = list(islice(runge_kutta(
+        lambda q, y: q,
+        lambda t, q:  5*q, # f(t, y)
         0., # t0
         1., # y0
         0.1,
     ), 10))
     # Print some values
-    print('\n'.join('y({:.3f}) = {}'.format(t, y) for t, y in tys))
+    print(ty1s)
+
+    print('\n'.join('y({:.3f}) = {}'.format(t, y) for t, y in ty1s))
 
