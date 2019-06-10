@@ -81,7 +81,8 @@ if __name__ == '__main__':
         lambda q, y: q,
         lambda t, q:  5*q, # f(t, y)
         0., # t0
-        1., # y0
+        1., # q0
+        0., # y0
         0.1,
     ), 10))
     # Print some values
